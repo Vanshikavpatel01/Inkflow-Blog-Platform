@@ -139,3 +139,8 @@ A Medium-inspired blog platform built with React, Express, PostgreSQL, and TypeS
 - `express-session` - Session management
 
 
+## Setup Instructions
+
+1. Clone the repository
+2. Run npm install
+3. Run npm run dev
