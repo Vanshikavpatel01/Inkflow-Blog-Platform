@@ -1,20 +1,22 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { serveStatic } from "./static";
+import { setupVite } from "./vite";
 import { createServer } from "http";
 import { seedDatabase } from "./seed";
+import cors from "cors";
 
 const app = express();
-import cors from "cors";
+
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // local dev frontend
-      "https://inkflow-blog-platform-xx8j-e6ns5thbp-vanshikavpatel01s-projects.vercel.app", // production frontend
+      "http://localhost:5173",
+      "https://inkflow-blog-platform-xx8j-e6ns5thbp-vanshikavpatel01s-projects.vercel.app",
     ],
     credentials: true,
   })
 );
+
 const httpServer = createServer(app);
 
 declare module "http" {
@@ -28,7 +30,7 @@ app.use(
     verify: (req, _res, buf) => {
       req.rawBody = buf;
     },
-  }),
+  })
 );
 
 app.use(express.urlencoded({ extended: false }));
@@ -62,7 +64,6 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       log(logLine);
     }
   });
@@ -72,6 +73,10 @@ app.use((req, res, next) => {
 
 (async () => {
   await registerRoutes(httpServer, app);
+
+  if (process.env.NODE_ENV !== "production") {
+    await setupVite(httpServer, app);
+  }
 
   try {
     await seedDatabase();
@@ -92,22 +97,8 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
+  const port = parseInt(process.env.PORT || "3000", 10);
+  httpServer.listen(port, () => {
+    log(`serving on port ${port}`);
+  });
 })();
