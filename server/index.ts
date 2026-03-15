@@ -11,8 +11,10 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://inkflow-blog-platform-xx8j-e6ns5thbp-vanshikavpatel01s-projects.vercel.app",
-    ],
+      "http://localhost:3000",
+      "https://inkflow-blog.vercel.app",
+      process.env.FRONTEND_URL || "",
+    ].filter(Boolean),
     credentials: true,
   })
 );
